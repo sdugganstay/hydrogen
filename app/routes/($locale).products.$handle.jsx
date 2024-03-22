@@ -1,4 +1,4 @@
-import {Suspense} from 'react';
+import {Suspense, useState, useEffect} from 'react';
 import {defer, redirect} from '@shopify/remix-oxygen';
 import {Await, Link, useLoaderData} from '@remix-run/react';
 
@@ -170,6 +170,7 @@ function ProductMain({selectedVariant, product, variants}) {
               product={product}
               selectedVariant={selectedVariant}
               variants={data.product?.variants.nodes || []}
+              sellingPlanGroups={product.sellingPlanGroups} // Make sure this is correctly passed
             />
           )}
         </Await>
@@ -219,7 +220,39 @@ function ProductPrice({selectedVariant}) {
  *   variants: Array<ProductVariantFragment>;
  * }}
  */
-function ProductForm({product, selectedVariant, variants}) {
+
+function ProductForm({ product, selectedVariant, variants, sellingPlanGroups }) {
+  const [purchaseType, setPurchaseType] = useState('one-time');
+  const [selectedSellingPlanId, setSelectedSellingPlanId] = useState('');
+  const [initialSubscriptionSelected, setInitialSubscriptionSelected] = useState(false);
+
+  const sellingPlanOptions = sellingPlanGroups?.edges?.map(group => 
+    group.node.sellingPlans.edges.map(plan => ({
+      id: plan.node.id,
+      name: plan.node.name
+    }))
+  ).flat() || [];
+
+  useEffect(() => {
+    // Only set the selectedSellingPlanId upon the initial selection of "subscription"
+    if (purchaseType === 'subscription' && !initialSubscriptionSelected && sellingPlanOptions.length > 0) {
+      setSelectedSellingPlanId(sellingPlanOptions[0].id);
+      setInitialSubscriptionSelected(true);
+    }
+    // Reset initialSubscriptionSelected when switching away from subscription
+    if (purchaseType !== 'subscription' && initialSubscriptionSelected) {
+      setInitialSubscriptionSelected(false);
+    }
+  }, [purchaseType, initialSubscriptionSelected, sellingPlanOptions]);
+
+  function handleSellingPlanChange(event) {
+    setSelectedSellingPlanId(event.target.value);
+  }
+
+  function handlePurchaseTypeChange(event) {
+    setPurchaseType(event.target.value);
+  }
+
   return (
     <div className="product-form">
       <VariantSelector
@@ -227,24 +260,56 @@ function ProductForm({product, selectedVariant, variants}) {
         options={product.options}
         variants={variants}
       >
-        {({option}) => <ProductOptions key={option.name} option={option} />}
+        {({ option }) => <ProductOptions key={option.name} option={option} />}
       </VariantSelector>
       <br />
+      {sellingPlanOptions.length > 0 && (
+        <>
+          <label>
+            <input
+              type="radio"
+              name="purchaseType"
+              value="one-time"
+              checked={purchaseType === 'one-time'}
+              onChange={handlePurchaseTypeChange}
+            />
+            One-Time Purchase
+          </label>
+          <br />
+          <label>
+            <input
+              type="radio"
+              name="purchaseType"
+              value="subscription"
+              checked={purchaseType === 'subscription'}
+              onChange={handlePurchaseTypeChange}
+            />
+            Subscribe & Save
+          </label>
+          <br />
+        </>
+      )}
+      {purchaseType === 'subscription' && sellingPlanOptions.length > 0 && (
+        <select value={selectedSellingPlanId} onChange={handleSellingPlanChange}>
+          {sellingPlanOptions.map((plan, index) => (
+            <option key={index} value={plan.id}>{plan.name}</option>
+          ))}
+        </select>
+      )}
+      <br /><br />
       <AddToCartButton
         disabled={!selectedVariant || !selectedVariant.availableForSale}
         onClick={() => {
           window.location.href = window.location.href + '#cart-aside';
         }}
-        lines={
-          selectedVariant
-            ? [
-                {
-                  merchandiseId: selectedVariant.id,
-                  quantity: 1,
-                },
-              ]
-            : []
-        }
+        lines={selectedVariant && purchaseType === 'subscription' && selectedSellingPlanId ? [{
+          merchandiseId: selectedVariant.id,
+          quantity: 1,
+          sellingPlanId: selectedSellingPlanId,
+        }] : selectedVariant ? [{
+          merchandiseId: selectedVariant.id,
+          quantity: 1,
+        }] : []}
       >
         {selectedVariant?.availableForSale ? 'Add to cart' : 'Sold out'}
       </AddToCartButton>
@@ -376,6 +441,21 @@ const PRODUCT_FRAGMENT = `#graphql
     seo {
       description
       title
+    }
+    sellingPlanGroups(first: 10) {
+      edges {
+        node {
+          appName
+          sellingPlans(first: 10) {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
     }
   }
   ${PRODUCT_VARIANT_FRAGMENT}
