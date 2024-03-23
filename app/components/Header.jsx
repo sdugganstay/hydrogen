@@ -9,10 +9,12 @@ export function Header({header, isLoggedIn, cart}) {
   const {shop, menu} = header;
   return (
     <header className="header">
-      <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
+      <NavLink prefetch="intent" to="/" >
         <strong>{shop.name}</strong>
       </NavLink>
-      
+      <NavLink prefetch="intent" to="https://dadd78-cb.myshopify.com/account" style={activeLinkStyle} end>
+        My Account
+      </NavLink>
       <HeaderMenu
         menu={menu}
         viewport="desktop"
