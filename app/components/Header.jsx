@@ -12,9 +12,6 @@ export function Header({header, isLoggedIn, cart}) {
       <NavLink prefetch="intent" to="/" >
         <strong>{shop.name}</strong>
       </NavLink>
-      <NavLink prefetch="intent" to="https://dadd78-cb.myshopify.com/account" style={activeLinkStyle} end>
-        My Account
-      </NavLink>
       <HeaderMenu
         menu={menu}
         viewport="desktop"
@@ -91,12 +88,11 @@ function HeaderCtas({isLoggedIn, cart}) {
   return (
     <nav className="header-ctas" role="navigation">
       <HeaderMenuMobileToggle />
-      <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
-        <Suspense fallback="Sign in">
-          <Await resolve={isLoggedIn} errorElement="Sign in">
-            {(isLoggedIn) => (isLoggedIn ? 'Account' : 'Sign in')}
-          </Await>
-        </Suspense>
+      <NavLink prefetch="intent" to="https://dadd78-cb.myshopify.com/account" style={activeLinkStyle}>
+          My Account
+      </NavLink>
+      <NavLink prefetch="intent" to="https://dadd78-cb.myshopify.com/apps/retextion#/login" style={activeLinkStyle}>
+          Manage Subscriptions
       </NavLink>
       <SearchToggle />
       <CartToggle cart={cart} />
@@ -113,7 +109,7 @@ function HeaderMenuMobileToggle() {
 }
 
 function SearchToggle() {
-  return <a href="#search-aside">Search</a>;
+  return ;
 }
 
 /**
