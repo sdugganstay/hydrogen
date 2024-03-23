@@ -5,6 +5,11 @@ Hydrogen is Shopify’s stack for headless commerce. Hydrogen is designed to dov
 [Check out Hydrogen docs](https://shopify.dev/custom-storefronts/hydrogen)
 [Get familiar with Remix](https://remix.run/docs/en/v1)
 
+
+## Demo Store
+
+[Check out Demo store](https://duggan-hydrogen-5dcc8e2aea347b45bfcf.o2.myshopify.dev/)
+
 ## What's included
 
 - Remix
