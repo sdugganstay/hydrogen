@@ -20,6 +20,7 @@
     "@shopify/hydrogen": "~2024.1.4",
     "@shopify/remix-oxygen": "^2.0.3",
     "body-parser": "^1.20.3",
+    "braces": "^3.0.3",
     "dset": "^3.1.4",
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6",
